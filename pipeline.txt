@@ -1,4 +1,3 @@
-
 pipeline {
     agent any
     tools {
@@ -67,12 +66,17 @@ pipeline {
                 sh "trivy image chandureddy008/netflix:latest > trivyimage.txt" 
             }
         }
-        stage('Deploy to Container') {
+        stage('Deploy to Kubernetes') {
             steps {
-                sh 'docker run -d --name netflix -p 8081:80 chandureddy008/netflix:latest'
+                script {
+                    dir('Kubernetes') {
+                        withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'k8s', namespace: '', restrictKubeConfigAccess: false, serverUrl: '') {
+                                sh 'kubectl apply -f deployment.yml'
+                                sh 'kubectl apply -f service.yml'
+                        }   
+                    }
+                }
             }
         }
     }
 }
-
-   
